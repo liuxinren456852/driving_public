@@ -71,9 +71,10 @@ void BagReader::load_bags(const std::vector<std::string> & bagpaths, ros::Durati
   bags_.clear();
 
   view_.reset( new rosbag::View );
+
   std::vector<std::string> topics;
+  // some of our old bags had this format
   topics.push_back(std::string("/driving/velodyne/raw_scans"));
-  topics.push_back(std::string("/driving/velodyne/packets"));
   topics.push_back(std::string("/driving/ApplanixPose"));
   topics.push_back(std::string("/driving/ApplanixGPS"));
   topics.push_back(std::string("/driving/ApplanixRMS"));
@@ -82,6 +83,9 @@ void BagReader::load_bags(const std::vector<std::string> & bagpaths, ros::Durati
   topics.push_back("/driving/EStopStatus");
   topics.push_back("/driving/PassatStatus");
   topics.push_back("/driving/Trajectory2D");
+
+  const rosbag::TopicQuery topicsQuery(topics);
+  const rosbag::TypeQuery typeQuery("velodyne_msgs/VelodyneScan");
 
   BOOST_FOREACH(std::string const& bagpath, bagpaths) {
     ROS_DEBUG_STREAM("Loading data from " <<bagpath);
@@ -94,7 +98,8 @@ void BagReader::load_bags(const std::vector<std::string> & bagpaths, ros::Durati
     }
     const ros::Time start_time = view.getBeginTime() + skip;
     bags_.push_back(bag);
-    view_->addQuery(*bag, rosbag::TopicQuery(topics), start_time);
+    view_->addQuery(*bag, topicsQuery, start_time);
+    view_->addQuery(*bag, typeQuery, start_time);
   }
   const double duration = (view_->getEndTime()-view_->getBeginTime()).toSec();
   ROS_INFO_STREAM("Duration: " <<duration);

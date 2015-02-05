@@ -80,6 +80,9 @@ public:
   virtual velodyne_msgs::VelodyneScan::ConstPtr instantiateVelodyneScans() const
   { return velodyne_msgs::VelodyneScan::ConstPtr(); }
 
+  /// This is for the readers that read spin per spin, such as the Kitti reader
+  /// and the Spinello reader. It is not a convenience function to build a spin
+  /// from many scans. See SpinReader for that.
   virtual stdr_velodyne::PointCloud::ConstPtr instantiateVelodyneSpin() const
   { return stdr_velodyne::PointCloud::ConstPtr(); }
 
