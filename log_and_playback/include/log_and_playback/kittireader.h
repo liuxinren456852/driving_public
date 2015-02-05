@@ -59,7 +59,7 @@ public:
 
 protected:
   /// static configuration instance
-  stdr_velodyne::Configuration::ConstPtr config_;
+  stdr_velodyne::Configuration config_;
 
 private:
   std::ifstream vfile_;

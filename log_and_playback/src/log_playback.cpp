@@ -267,25 +267,6 @@ int main(int argc, char **argv)
     }
   }
 
-  if( kitti || spinello ) {
-    stdr_velodyne::Configuration::Ptr config =
-        stdr_velodyne::Configuration::getStaticConfigurationInstance();
-
-    std::string calibration_file;
-    if( ! ros::param::get("/driving/velodyne/cal_file", calibration_file) )
-      BOOST_THROW_EXCEPTION(stdr::ex::ExceptionBase() <<stdr::ex::MsgInfo(
-                              "You must provide a configuration file, either on the command line, or as a rosparam."));
-    config->readCalibration(calibration_file);
-
-    std::string intensity_file;
-    if( ! ros::param::get("/driving/velodyne/int_file", intensity_file) )
-      BOOST_THROW_EXCEPTION(stdr::ex::ExceptionBase() <<stdr::ex::MsgInfo(
-                              "You must provide an intensity configuration file, either on the command line, or as a rosparam."));
-    config->readIntensity(intensity_file);
-  }
-
-
-
   data_reader.load( opts["logs"].as< std::vector<std::string> >() );
 
   // advance into the files until we reach the desired start time

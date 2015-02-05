@@ -210,7 +210,7 @@ KittiVeloReader::KittiVeloReader()
   }
 
 
-  config_ = stdr_velodyne::Configuration::getStaticConfigurationInstance();
+  config_ = stdr_velodyne::Configuration(nh);
   ok_ = false;
   spin_ = boost::make_shared<stdr_velodyne::PointCloud>();
 }
@@ -295,7 +295,7 @@ bool KittiVeloReader::next()
         && point.z > pt_on_car_min_.z() && point.z < pt_on_car_max_.z() )
       continue;
 
-    const stdr_velodyne::RingConfig & rcfg = config_->getRingConfig(point.beam_id - 1);
+    const stdr_velodyne::RingConfig & rcfg = config_.getRingConfig(point.beam_id - 1);
 
     pt.x = point.x;
     pt.y = point.y;

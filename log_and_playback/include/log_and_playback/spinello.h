@@ -71,7 +71,7 @@ public:
 
 protected:
   /// static configuration instance
-  stdr_velodyne::Configuration::ConstPtr config_;
+  stdr_velodyne::Configuration config_;
 
 private:
   stdr_velodyne::PointCloud::Ptr spin_;

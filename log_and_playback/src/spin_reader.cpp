@@ -35,8 +35,6 @@
   DAMAGE.
  ********************************************************/
 
-#include <boost/program_options.hpp>
-
 #include <stdr_lib/exception.h>
 #include <stdr_velodyne/transform.h>
 
@@ -45,36 +43,16 @@
 #include <log_and_playback/spin_reader.h>
 
 
-namespace bpo = boost::program_options;
-
 
 namespace log_and_playback
 {
 
-void SpinReader::addOptions(boost::program_options::options_description& opts_desc)
-{
-  opts_desc.add_options()
-      ("start,s", bpo::value<double>()->default_value(0), "start SEC seconds into the bag files")
-      ("nocal", "do not load any calibration file (i.e. use the default config).")
-      ("cal", bpo::value<std::string>(), "velodyne calibration file")
-      ("noical", "do not load any intensity calibration file (i.e. use the default config).")
-      ("ical", bpo::value<std::string>(), "velodyne intensity calibration file")
-      ("robot_description", bpo::value<std::string>(), "robot model file")
-      ("logs", bpo::value< std::vector<std::string> >()->required(), "log files to load (bags or dgc logs)")
-      ;
-}
-
-void SpinReader::addOptions(boost::program_options::positional_options_description& pos_opts_desc)
-{
-  pos_opts_desc.add("logs", -1);
-}
-
-
 
 SpinReader::SpinReader()
-: do_I_own_the_data_reader_(false), data_reader_(0)
-, config_( stdr_velodyne::Configuration::getStaticConfigurationInstance() )
-, packet2pcd_convertor_( ros::NodeHandle("/driving/velodyne") )
+  : do_I_own_the_data_reader_(false)
+  , data_reader_(0)
+  , spin_collector_( ros::NodeHandle("/driving/velodyne") )
+  , packet2pcd_convertor_( ros::NodeHandle("/driving/velodyne") )
 {
 
 }
@@ -200,44 +178,6 @@ bool SpinReader::next()
     }
   }
   return true;
-}
-
-void SpinReader::loadCalibrationFromProgramOptions(const bpo::variables_map & vm)
-{
-  if( ! vm.count("nocal") ) {
-    std::string calibration_file;
-    if( vm.count("cal") )
-      calibration_file = vm["cal"].as<std::string>();
-    else if( ! ros::param::get("/driving/velodyne/cal_file", calibration_file) )
-      BOOST_THROW_EXCEPTION(stdr::ex::ExceptionBase() <<stdr::ex::MsgInfo(
-                              "You must provide a configuration file, either on the command line, or as a rosparam."));
-    config_->readCalibration(calibration_file);
-  }
-
-  if( ! vm.count("noical") ) {
-    std::string intensity_file;
-    if( vm.count("ical") )
-      intensity_file = vm["ical"].as<std::string>();
-    else if( ! ros::param::get("/driving/velodyne/int_file", intensity_file) )
-      BOOST_THROW_EXCEPTION(stdr::ex::ExceptionBase() <<stdr::ex::MsgInfo(
-                              "You must provide an intensity configuration file, either on the command line, or as a rosparam."));
-    config_->readIntensity(intensity_file);
-  }
-}
-
-void SpinReader::loadTFMFromProgramOptions(const bpo::variables_map & vm)
-{
-  RobotModel model;
-  if( vm.count("robot_description") )
-    model.addFile(vm["robot_description"].as<std::string>());
-  else if( ! ros::param::has("/driving/robot_description") )
-    BOOST_THROW_EXCEPTION(stdr::ex::ExceptionBase() <<stdr::ex::MsgInfo(
-                            "You must provide a model description, either on the command line, or as a rosparam."));
-  model.addParam("/driving/robot_description");
-
-  BOOST_FOREACH(const tf::StampedTransform& t, model.getStaticTransforms()) {
-    tf_listener_.addStaticTransform(t);
-  }
 }
 
 }

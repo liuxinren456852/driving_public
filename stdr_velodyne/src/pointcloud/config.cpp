@@ -50,28 +50,6 @@
 namespace stdr_velodyne {
 
 
-unsigned getSpinStart()
-{
-  static boost::mutex get_spin_start_mutex_;
-  static unsigned get_spin_start_value_;
-  static bool first = true;
-
-  boost::unique_lock<boost::mutex> lock(get_spin_start_mutex_);
-
-  if(first)
-  {
-    ros::NodeHandle nh("/driving/velodyne");
-    int spin_start;
-    GET_ROS_PARAM_WARN(nh, "spin_start", spin_start, stdr_velodyne::NUM_TICKS / 2);
-    ROS_ASSERT_MSG(spin_start>=0 && spin_start<stdr_velodyne::NUM_TICKS,
-                   "Invalid value for rosparam /driving/velodyne/spin_start");
-    get_spin_start_value_ = spin_start;
-    first = false;
-  }
-  return get_spin_start_value_;
-}
-
-
 void AngleVal::fromDegrees(double v)
 {
   fromRads(angles::from_degrees(v));
@@ -132,21 +110,30 @@ uint16_t RingConfig::h_angle_to_encoder(double h_angle) const
 
 
 
-Configuration::Ptr Configuration::static_configuration;
-
-Configuration::Ptr Configuration::getStaticConfigurationInstance()
-{
-  if( ! static_configuration )
-    static_configuration.reset(new Configuration);
-  return static_configuration;
-}
-
 Configuration::Configuration()
   : valid_(false)
+  , calibrate_intensities_(false)
 {
   for (unsigned i = 0; i < NUM_LASERS; i++)
     for (unsigned j = 0; j < 256; j++)
       intensity_map_[i][j] = j;
+}
+
+Configuration::Configuration(const ros::NodeHandle & nh)
+  : valid_(true)
+{
+  readCalibration(stdr::get_rosparam<std::string>(nh, "cal_file"));
+  calibrate_intensities_ = stdr::get_rosparam<bool>(nh, "calibrate_intensities", true);
+  if( calibrate_intensities_ ) {
+    readIntensity(stdr::get_rosparam<std::string>(nh, "int_file"));
+  }
+  else {
+    for (unsigned i = 0; i < NUM_LASERS; i++)
+      for (unsigned j = 0; j < 256; j++)
+        intensity_map_[i][j] = j;
+  }
+
+  spin_start_ = stdr::get_rosparam<int>(nh, "spin_start", 0);
 }
 
 struct beam_angle_t
@@ -259,7 +246,6 @@ void Configuration::readCalibration(const std::string& filename)
 
   char line[MAX_LINE_LENGTH];
   range_multiplier_ = 1.0;
-  spin_start_ = 18000;
 
   if ((iop = fopen(filename.c_str(), "r")) == 0) {
     ROS_FATAL("could not open velodyne calibration file %s", filename.c_str());
@@ -298,9 +284,6 @@ void Configuration::readCalibration(const std::string& filename)
     }
     else if (sscanf(line, "RANGE_MULTIPLIER %f", &rm) == 1)
         range_multiplier_ = rm;
-    else if (sscanf(line, "SPIN_START %d", &int_val) == 1) {
-        spin_start_ = int_val;
-    }
     else {
       ROS_ERROR("error in line %d: %s", linectr, line);
       fclose(iop);

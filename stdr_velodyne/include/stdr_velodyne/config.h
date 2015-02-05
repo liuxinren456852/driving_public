@@ -39,7 +39,6 @@
 #ifndef __STDR_VELODYNE__CONFIG_H__
 #define __STDR_VELODYNE__CONFIG_H__
 
-#include <boost/noncopyable.hpp>
 #include <velodyne_pointcloud/rawdata.h>
 #include <stdr_velodyne/point_type.h>
 
@@ -49,11 +48,6 @@ namespace stdr_velodyne {
 static const unsigned NUM_LASERS = 64;
 static const unsigned NUM_TICKS = 36000;
 static const float TICKS_TO_METER = 0.002f;
-
-/** Returns the encoder value of the first scan in a whole spin (Reads it from
-  * rosparam /driving/velodyne/spin_start, aborts if not available).
-  */
-unsigned getSpinStart();
 
 
 /// \brief A structure to hold an angle's value, its cos and sin.
@@ -137,18 +131,14 @@ struct RingConfig
   * instance, load the configuration parameters from file, and use that static
   * instance everywhere.
   */
-class Configuration : boost::noncopyable
+class Configuration
 {
-private:
-  /// Default constructor. Private: use getStaticConfigurationInstance instead.
-  Configuration();
-
 public:
   typedef boost::shared_ptr<Configuration> Ptr;
   typedef boost::shared_ptr<Configuration const> ConstPtr;
 
-  /// Gets the static configuration instance (creates it if necessary)
-  static Ptr getStaticConfigurationInstance();
+  Configuration();
+  explicit Configuration(const ros::NodeHandle &);
 
   /// Reads configuration data from file
   void readCalibration(const std::string& filename);
@@ -159,6 +149,8 @@ public:
   void printCalibrationData() const;
 
   inline bool valid() const { return valid_; }
+
+  inline unsigned spinStart() const { return spin_start_; }
 
   /// Transforms (block id and index is Scan) into a beam hardware index in the
   /// [0-64] range.
@@ -192,7 +184,7 @@ public:
   /// Returns the true intensity corresponding to the raw intensity returned by
   /// beam @param i (hardware index).
   inline unsigned correctIntensity(unsigned i, unsigned raw_val) const
-  { return intensity_map_[beam_numbers_[i]][raw_val]; }
+  { return calibrate_intensities_ ? intensity_map_[beam_numbers_[i]][raw_val] : raw_val; }
 
   /// Returns the beam number closest to the given v_angle
   unsigned v_angle_to_beam_number(double v_angle) const;
@@ -203,14 +195,11 @@ public:
 
 
 private:
-  /// The static configuration instance (see getStaticConfigurationInstance())
-  static Ptr static_configuration;
-
   /// Constructed as invalid. Not valid until calibration data has been loaded.
   bool valid_;
-
-  unsigned spin_start_; ///< encoder value for the begining of the spin
+  bool calibrate_intensities_;
   double range_multiplier_;
+  unsigned spin_start_; ///< encoder value that marks the begining of the spin
 
   /// Rings configuration, stored by hardware index
   RingConfig ring_config_[NUM_LASERS];

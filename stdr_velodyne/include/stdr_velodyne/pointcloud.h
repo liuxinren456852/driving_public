@@ -62,11 +62,9 @@ public:
   void processPacket(const velodyne_msgs::VelodynePacket& input, PointCloud& output) const;
 
 protected:
-  bool calibrate_intensities_;
   double max_dist_;
 
-  /// static configuration instance
-  Configuration::ConstPtr config_;
+  Configuration config_;
 
   /// Whether to filter the points that fall on junior
   bool filter_points_on_car_;

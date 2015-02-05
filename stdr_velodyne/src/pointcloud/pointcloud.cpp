@@ -46,8 +46,7 @@ namespace stdr_velodyne {
 
 
 PacketToPcd::PacketToPcd(const ros::NodeHandle & nh)
-  : calibrate_intensities_(true)
-  , config_( stdr_velodyne::Configuration::getStaticConfigurationInstance() )
+  : config_(nh)
 {
   GET_ROS_PARAM_INFO(nh, "max_dist", max_dist_, std::numeric_limits<double>::max());
 
@@ -75,8 +74,7 @@ PacketToPcd::PacketToPcd(const ros::NodeHandle & nh)
 
 void PacketToPcd::processPacket(const velodyne_msgs::VelodynePacket& packet, PointCloud& pcd) const
 {
-  ROS_ASSERT(config_);
-  ROS_ASSERT(config_->valid());
+  ROS_ASSERT(config_.valid());
   //ScopedTimer timer("PacketToPcd::processPacket");
 
   pcd.reserve(pcd.size() + velodyne_rawdata::BLOCKS_PER_PACKET*velodyne_rawdata::SCANS_PER_BLOCK);
@@ -125,15 +123,15 @@ void PacketToPcd::processPacket(const velodyne_msgs::VelodynePacket& packet, Poi
         }
       }
       else {
-        n = config_->getBeamIndex(block.header, j);
+        n = config_.getBeamIndex(block.header, j);
       }
 
-      const RingConfig & rcfg = config_->getRingConfig(n);
+      const RingConfig & rcfg = config_.getRingConfig(n);
       const AngleVal & hAngle = rcfg.enc_rot_angle_[pt.encoder];
       pt.h_angle = hAngle.getRads();
       pt.v_angle = rcfg.vert_angle_.getRads();
       pt.beam_id = n;
-      pt.beam_nb = config_->getBeamNumber(n);
+      pt.beam_nb = config_.getBeamNumber(n);
 
       const unsigned k = j * velodyne_rawdata::RAW_SCAN_SIZE;
 
@@ -150,10 +148,7 @@ void PacketToPcd::processPacket(const velodyne_msgs::VelodynePacket& packet, Poi
         continue;
 
       const uint8_t intensity = block.data[k+2];
-      if( calibrate_intensities_ )
-        pt.intensity = config_->correctIntensity(n, intensity);
-      else
-        pt.intensity = intensity;
+      pt.intensity = config_.correctIntensity(n, intensity);
 
       rcfg.project(distance, &pt);
 

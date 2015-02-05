@@ -47,22 +47,6 @@ namespace stdr_velodyne
 PacketToPcdNodeBase::PacketToPcdNodeBase(ros::NodeHandle node_handle, ros::NodeHandle private_nh)
   : PacketToPcd(node_handle)
 {
-  Configuration::Ptr config = Configuration::getStaticConfigurationInstance();
-
-  std::string  cal_filename, int_filename;
-  GET_ROS_PARAM_ABORT(node_handle, "cal_file", cal_filename);
-  config->readCalibration(cal_filename);
-
-  GET_ROS_PARAM_WARN(node_handle, "calibrate_intensities", calibrate_intensities_, true);
-
-  if( calibrate_intensities_ ) {
-    if( ! node_handle.getParam("int_file", int_filename) ) {
-      ROS_FATAL("Could not get calibration file from rosparam");
-      ROS_BREAK();
-    }
-    config->readIntensity(int_filename);
-  }
-
   pub_ = node_handle.advertise<PointCloud>("points", 100);
   sub_ = node_handle.subscribe("packets", 100, &PacketToPcdNodeBase::cb, this);
 }

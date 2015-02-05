@@ -43,6 +43,7 @@
 #include <message_filters/simple_filter.h>
 #include <agent/lockable.h>
 #include <stdr_velodyne/point_type.h>
+#include <stdr_velodyne/config.h>
 
 namespace stdr_velodyne
 {
@@ -50,11 +51,11 @@ namespace stdr_velodyne
 class SpinCollector : public SharedLockable
 {
 public:
-  SpinCollector();
+  SpinCollector(const ros::NodeHandle & nh);
 
   /// add the new scans to the collection. Returns a complete spin if enough scan were
   /// collected, returns a null pointer otherwise.
-  PointCloudPtr add(const PointCloud &);
+  PointCloud::Ptr add(const PointCloud &);
 
   bool add(const PointCloud & in, PointCloud & out);
 
@@ -63,7 +64,7 @@ public:
 private:
   PointCloud points_;
   int prev_encoder_;
-  unsigned spin_start_;
+  Configuration config_;
 
   bool isFirstPoint(const PointType &);
 };
@@ -82,11 +83,13 @@ private:
 class VelodyneScanMessageFilter : public message_filters::SimpleFilter<PointCloud>
 {
 public:
-  VelodyneScanMessageFilter()
+  VelodyneScanMessageFilter(const ros::NodeHandle & nh)
+    : collector_(nh)
   {
   }
 
-  VelodyneScanMessageFilter(message_filters::SimpleFilter<PointCloud>& f)
+  VelodyneScanMessageFilter(const ros::NodeHandle & nh, message_filters::SimpleFilter<PointCloud>& f)
+    : collector_(nh)
   {
     connectInput(f);
   }
@@ -103,9 +106,9 @@ public:
   void clear() { collector_.clear(); }
 
 private:
-  void update(const PointCloudConstPtr & packet)
+  void update(const PointCloud::ConstPtr & packet)
   {
-    PointCloudPtr spin = collector_.add(*packet);
+    PointCloud::Ptr spin = collector_.add(*packet);
     if( spin )
       signalMessage(spin);
   }

@@ -8,9 +8,9 @@
 namespace stdr_velodyne
 {
 
-SpinCollector::SpinCollector()
-: spin_start_( getSpinStart() )
-, prev_encoder_(-1)
+SpinCollector::SpinCollector(const ros::NodeHandle & nh)
+  : config_(nh)
+  , prev_encoder_(-1)
 {
 
 }
@@ -20,21 +20,21 @@ bool SpinCollector::isFirstPoint(const PointType & p)
   if( p.beam_id!=0 )
     return false;
 
-  if( prev_encoder_ < spin_start_ && p.encoder >= spin_start_ )
+  if( prev_encoder_ < config_.spinStart() && p.encoder >= config_.spinStart() )
     return true;
 
-  if( prev_encoder_ > p.encoder && prev_encoder_ < spin_start_ + NUM_TICKS && p.encoder >= spin_start_ )
+  if( prev_encoder_ > p.encoder && prev_encoder_ < config_.spinStart() + NUM_TICKS && p.encoder >= config_.spinStart() )
     return true;
 
   return false;
 }
 
-PointCloudPtr SpinCollector::add(const PointCloud & packet)
+PointCloud::Ptr SpinCollector::add(const PointCloud & packet)
 {
-  PointCloudPtr spin( new PointCloud );
+  PointCloud::Ptr spin( new PointCloud );
   if( add(packet, *spin) )
     return spin;
-  return PointCloudPtr();
+  return PointCloud::Ptr();
 }
 
 bool SpinCollector::add(const PointCloud & packet, PointCloud & spin)

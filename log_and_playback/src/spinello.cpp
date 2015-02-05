@@ -103,7 +103,7 @@ SpinelloReader::SpinelloReader()
   }
 
 
-  config_ = stdr_velodyne::Configuration::getStaticConfigurationInstance();
+  config_ = stdr_velodyne::Configuration(nh);
   ok_ = false;
   spin_ = boost::make_shared<stdr_velodyne::PointCloud>();
 }
@@ -202,14 +202,14 @@ void SpinelloReader::readVelodyneData()
         && pt.z > pt_on_car_min_.z() && pt.z < pt_on_car_max_.z() )
       continue;
 
-    const stdr_velodyne::RingConfig & rcfg = config_->getRingConfig(pt.beam_id);
+    const stdr_velodyne::RingConfig & rcfg = config_.getRingConfig(pt.beam_id);
 
     pt.intensity = 200; // arbitrary number (intensity data is not present in the dataset)
     pt.h_angle = atan2(pt.y, pt.x);
     pt.encoder = angles::to_degrees(angles::normalize_angle_positive(2*M_PI-pt.h_angle)) * 100;
     pt.v_angle = rcfg.vert_angle_.getRads();
     pt.distance = sqrt(pow(pt.x, 2)+pow(pt.y, 2)+pow(pt.z, 2));
-    pt.beam_nb = config_->getBeamNumber(pt.beam_id);
+    pt.beam_nb = config_.getBeamNumber(pt.beam_id);
 
     // get amount of rotation since the back
     // pt.h_angle is given from the front CCW
@@ -233,9 +233,6 @@ void SpinelloReader::readVelodyneData()
 
 bool SpinelloReader::next()
 {
-  ROS_ASSERT(config_);
-  ROS_ASSERT(config_->valid());
-
   spin_.reset();
   pose_.reset();
 

@@ -35,6 +35,7 @@
   DAMAGE.
  ********************************************************/
 
+#include <boost/program_options.hpp>
 #include <ros/publisher.h>
 #include <stdr_lib/exception.h>
 #include <log_and_playback/spin_reader.h>
@@ -57,10 +58,12 @@ int main(int argc, char **argv)
 
   namespace bpo = boost::program_options;
   bpo::options_description opts_desc("Allowed options");
-  opts_desc.add_options()("help,h", "produce help message");
-  SpinReader::addOptions(opts_desc);
+  opts_desc.add_options()
+      ("help,h", "produce help message")
+      ("start,s", bpo::value<double>()->default_value(0), "start SEC seconds into the bag files")
+      ("logs", bpo::value< std::vector<std::string> >()->required(), "log files to load (bags or dgc logs)");
   boost::program_options::positional_options_description pos_opts_desc;
-  SpinReader::addOptions(pos_opts_desc);
+  pos_opts_desc.add("logs", -1);
   bpo::variables_map opts;
 
   try {
@@ -82,8 +85,6 @@ int main(int argc, char **argv)
   }
 
   try {
-    spin_reader.loadCalibrationFromProgramOptions(opts);
-    spin_reader.loadTFMFromProgramOptions(opts);
     spin_reader.load(
           opts["logs"].as< std::vector<std::string> >(),
           ros::Duration(opts["start"].as<double>()) );

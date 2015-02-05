@@ -41,8 +41,6 @@
 
 #include <queue>
 
-#include <boost/program_options.hpp>
-
 #include <stdr_velodyne/message_filter.h>
 #include <stdr_velodyne/pointcloud.h>
 
@@ -94,37 +92,22 @@ public:
   BagTFListener & tfListener() { return tf_listener_; }
 
 
-  static void addOptions(boost::program_options::options_description&);
-  static void addOptions(boost::program_options::positional_options_description&);
-
-  /// loads the calibration file, from the option in vm if set,
-  /// otherwise from rosparam. Throws a runtime_error if none of them is set,
-  /// or if it fails to load.
-  virtual void loadCalibrationFromProgramOptions(const boost::program_options::variables_map & vm);
-
-  /// loads the velodyne's TFM, from the option in vm if set,
-  /// otherwise from rosparam. Throws a runtime_error if none of them is set.
-  virtual void loadTFMFromProgramOptions(const boost::program_options::variables_map & vm);
-
 protected:
   bool do_I_own_the_data_reader_;
   AbstractDataReader * data_reader_;
 
   stdr_velodyne::SpinCollector spin_collector_; //< buffer to get full spins
-  stdr_velodyne::PointCloudPtr current_spin_;   //< current spin
+  stdr_velodyne::PointCloud::Ptr current_spin_;   //< current spin
 
   BagTFListener tf_listener_;
 
   // a queue to hold the spin messages until a transform is available
   std::queue< stdr_velodyne::PointCloud::ConstPtr > spinQ_;
 
-  /// static config instance
-  stdr_velodyne::Configuration::Ptr config_;
-
   stdr_velodyne::PacketToPcd packet2pcd_convertor_;
 
   /// Check whether spins in the Q can be transformed to the smooth frame.
-  stdr_velodyne::PointCloudPtr processSpinQueue();
+  stdr_velodyne::PointCloud::Ptr processSpinQueue();
 
 private:
   bool next();
