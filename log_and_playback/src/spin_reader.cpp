@@ -54,7 +54,12 @@ SpinReader::SpinReader()
   , spin_collector_( ros::NodeHandle("/driving/velodyne") )
   , packet2pcd_convertor_( ros::NodeHandle("/driving/velodyne") )
 {
-
+  RobotModel model;
+  ROS_ASSERT(ros::param::has("/driving/robot_description"));
+  model.addParam("/driving/robot_description");
+  BOOST_FOREACH(const tf::StampedTransform& t, model.getStaticTransforms()) {
+    tf_listener_.addStaticTransform(t);
+  }
 }
 
 SpinReader::~SpinReader()

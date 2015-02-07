@@ -70,7 +70,6 @@ public:
   stdr_msgs::ApplanixPose::ConstPtr instantiateApplanixPose() const { return pose_; }
 
 protected:
-  /// static configuration instance
   stdr_velodyne::Configuration config_;
 
 private:

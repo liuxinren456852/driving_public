@@ -58,7 +58,6 @@ public:
   stdr_velodyne::PointCloud::ConstPtr instantiateVelodyneSpin() const { return spin_; }
 
 protected:
-  /// static configuration instance
   stdr_velodyne::Configuration config_;
 
 private:
