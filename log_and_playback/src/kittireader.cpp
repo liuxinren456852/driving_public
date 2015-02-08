@@ -235,8 +235,7 @@ void KittiVeloReader::close()
 
 bool KittiVeloReader::next()
 {
-  ROS_ASSERT(config_);
-  ROS_ASSERT(config_->valid());
+  ROS_ASSERT(config_.valid());
 
   if( !vfile_ ) {
     ok_ = false;

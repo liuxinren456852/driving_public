@@ -77,7 +77,9 @@ struct RingConfig
 
   /// lookup table for the true encoder value for this beam, given the global
   /// encoder value.
-  AngleVal enc_rot_angle_[NUM_TICKS];
+  // Note: this must be allocated on the heap and not on the stack because 64 of
+  // those is way too much.
+  std::vector<AngleVal> enc_rot_angle_;
 
   /// vertical angle
   AngleVal vert_angle_;
@@ -202,7 +204,7 @@ private:
   unsigned spin_start_; ///< encoder value that marks the begining of the spin
 
   /// Rings configuration, stored by hardware index
-  RingConfig ring_config_[NUM_LASERS];
+  std::vector<RingConfig> ring_config_;
 
   /// Table lookup of beam hardware indexes: for beam number n,
   /// hardware_indexes_[n] is the corresponding hardware index.

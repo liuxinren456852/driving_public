@@ -40,7 +40,6 @@
 #include <boost/foreach.hpp>
 
 #include <stdr_lib/rosparam_helpers.h>
-#include <dgc_transform/dgc_transform.h>
 #include <stdr_velodyne/transform.h>
 #include <log_and_playback/data_reader.h>
 #include <log_and_playback/bag_reader.h>

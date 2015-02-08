@@ -40,7 +40,6 @@
 #define __STDR_VELODYNE__PKT_TO_PCD_NODE_BASE_H__
 
 #include <ros/ros.h>
-#include <stdr_velodyne/config.h>
 #include <stdr_velodyne/pointcloud.h>
 
 

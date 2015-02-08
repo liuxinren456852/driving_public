@@ -45,7 +45,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <velodyne_pointcloud/point_types.h>
 #include <stdr_velodyne/point_type.h>
-
+#include <stdr_velodyne/config.h>
 
 int main(int argc, char **argv)
 {

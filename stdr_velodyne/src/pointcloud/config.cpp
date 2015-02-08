@@ -70,8 +70,9 @@ double AngleVal::getDegrees() const
 
 
 RingConfig::RingConfig()
-  : rot_angle_(0), range_offset_(0), range_offsetX_(0),
-    range_offsetY_(0), laser_enabled_(true), v_offset_(0), h_offset_(0)
+  : rot_angle_(0), range_offset_(0), range_offsetX_(0)
+  , range_offsetY_(0), laser_enabled_(true), v_offset_(0), h_offset_(0)
+  , enc_rot_angle_(NUM_TICKS)
 {
 
 }
@@ -121,6 +122,7 @@ Configuration::Configuration()
 
 Configuration::Configuration(const ros::NodeHandle & nh)
   : valid_(true)
+  , ring_config_(NUM_LASERS)
 {
   readCalibration(stdr::get_rosparam<std::string>(nh, "cal_file"));
   calibrate_intensities_ = stdr::get_rosparam<bool>(nh, "calibrate_intensities", true);

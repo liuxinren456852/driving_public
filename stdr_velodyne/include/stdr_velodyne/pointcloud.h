@@ -47,8 +47,8 @@ namespace stdr_velodyne {
 
 /** \brief A class to convert a raw velodyne packet into a pointcloud.
   *
-  * It reads the configuration data from the static configuration instance
-  * (see velodyne::Configuration::getStaticConfigurationInstance()).
+  * It reads the velodyne configuration data from the node handle passed
+  * to the constructor.
   * It does not transform the points to a different frame.
   */
 class PacketToPcd

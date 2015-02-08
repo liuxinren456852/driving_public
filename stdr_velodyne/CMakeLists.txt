@@ -4,9 +4,8 @@ set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
 
 find_package(catkin REQUIRED COMPONENTS 
-  std_msgs roscpp nodelet dynamic_reconfigure 
-  velodyne_pointcloud stdr_msgs stdr_lib bag_of_tricks
-  tf
+  tf std_msgs roscpp nodelet dynamic_reconfigure velodyne_pointcloud
+  stdr_msgs stdr_lib agent timer
 )
 find_package(PCL REQUIRED COMPONENTS common)
 
@@ -15,7 +14,9 @@ generate_dynamic_reconfigure_options(cfg/Aggregator.cfg)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS std_msgs roscpp nodelet velodyne_pointcloud stdr_msgs stdr_lib bag_of_tricks
+  CATKIN_DEPENDS
+    tf std_msgs roscpp nodelet dynamic_reconfigure velodyne_pointcloud
+    stdr_msgs stdr_lib agent timer
   DEPENDS PCL
   CFG_EXTRAS stdr_velodyne-extras.cmake
 )
